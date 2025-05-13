@@ -1,0 +1,148 @@
+<script type="text/javascript">
+        var gk_isXlsx = false;
+        var gk_xlsxFileLookup = {};
+        var gk_fileData = {};
+        function filledCell(cell) {
+          return cell !== '' && cell != null;
+        }
+        function loadFileData(filename) {
+        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+            try {
+                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+                var firstSheetName = workbook.SheetNames[0];
+                var worksheet = workbook.Sheets[firstSheetName];
+
+                // Convert sheet to JSON to filter blank rows
+                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+                // Filter out blank rows (rows where all cells are empty, null, or undefined)
+                var filteredData = jsonData.filter(row => row.some(filledCell));
+
+                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
+                var headerRowIndex = filteredData.findIndex((row, index) =>
+                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
+                );
+                // Fallback
+                if (headerRowIndex === -1 || headerRowIndex > 25) {
+                  headerRowIndex = 0;
+                }
+
+                // Convert filtered JSON back to CSV
+                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
+                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
+                return csv;
+            } catch (e) {
+                console.error(e);
+                return "";
+            }
+        }
+        return gk_fileData[filename] || "";
+        }
+        </script><!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Solax Smart Relay</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 font-sans">
+  <!-- Header -->
+  <header class="bg-blue-600 text-white py-6">
+    <div class="container mx-auto text-center">
+      <h1 class="text-4xl font-bold">Solax Smart Relay</h1>
+      <p class="mt-2 text-lg">Розумне керування вашою сонячною енергією</p>
+      <a href="#buy" class="mt-4 inline-block bg-yellow-400 text-black px-6 py-3 rounded-lg font-semibold hover:bg-yellow-500">Замовити зараз</a>
+    </div>
+  </header>
+
+  <!-- Features -->
+  <section id="features" class="py-12">
+    <div class="container mx-auto px-4">
+      <h2 class="text-3xl font-bold text-center mb-8">Особливості</h2>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div class="bg-white p-6 rounded-lg shadow-md">
+          <h3 class="text-xl font-semibold mb-2">Автоматизація бойлера/зарядки</h3>
+          <p>Увімкнення бойлера чи зарядки електромобіля за надлишковою енергією.</p>
+        </div>
+        <div class="bg-white p-6 rounded-lg shadow-md">
+          <h3 class="text-xl font-semibold mb-2">Дистанційне керування</h3>
+          <p>Керуйте реле через Telegram із будь-якої точки світу.</p>
+        </div>
+        <div class="bg-white p-6 rounded-lg shadow-md">
+          <h3 class="text-xl font-semibold mb-2">Гнучка автоматизація</h3>
+          <p>Налаштуйте реле за рівнем заряду, генерацією або таймером.</p>
+        </div>
+        <div class="bg-white p-6 rounded-lg shadow-md">
+          <h3 class="text-xl font-semibold mb-2">Інтеграція з Solax</h3>
+          <p>Сумісність із інверторами Solax для повного контролю.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- How it works -->
+  <section id="how-it-works" class="bg-gray-200 py-12">
+    <div class="container mx-auto px-4">
+      <h2 class="text-3xl font-bold text-center mb-8">Як це працює?</h2>
+      <div class="flex flex-col md:flex-row items-center">
+        <div class="md:w-1/2 mb-6 md:mb-0">
+          <img src="assets/images/solar_station_screenshot.jpg" alt="Інтерфейс SolarStation12 із даними про генерацію та споживання" class="rounded-lg shadow-md w-full">
+        </div>
+        <div class="md:w-1/2 md:pl-8">
+          <p class="text-lg mb-4">Solax Smart Relay підключається до вашого інвертора Solax і WiFi мережі. Через Telegram ви можете:</p>
+          <ul class="list-disc pl-6 mt-4">
+            <li>Автоматично вмикати бойлер чи зарядку електромобіля, коли є надлишок енергії.</li>
+            <li>Вмикати/вимикати реле вручну.</li>
+            <li>Налаштувати автоматизацію за рівнем заряду батареї чи генерацією.</li>
+            <li>Встановити таймер для роботи реле.</li>
+            <li>Отримувати сповіщення про стан системи.</li>
+          </ul>
+          <p class="mt-4 text-lg">На фото ви бачите приклад роботи системи: коли генерація (1.15 кВт) перевищує споживання (832 Вт), надлишок енергії (316 Вт) може бути використаний для бойлера чи зарядки.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Telegram Screenshots -->
+  <section id="telegram-screenshots" class="py-12">
+    <div class="container mx-auto px-4">
+      <h2 class="text-3xl font-bold text-center mb-8">Скріншоти Telegram-бота</h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div class="bg-white p-6 rounded-lg shadow-md">
+          <img src="assets/images/telegram_status.jpg" alt="Скріншот Telegram-бота: статус системи" class="rounded-lg w-full mb-4">
+          <p class="text-center text-lg">Перегляд статусу системи після команди <code>/start</code>.</p>
+        </div>
+        <div class="bg-white p-6 rounded-lg shadow-md">
+          <img src="assets/images/telegram_setup.jpg" alt="Скріншот Telegram-бота: налаштування реле" class="rounded-lg w-full mb-4">
+          <p class="text-center text-lg">Налаштування реле №1 у режимі "Генерація".</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Instructions -->
+  <section id="instructions" class="py-12">
+    <div class="container mx-auto px-4">
+      <h2 class="text-3xl font-bold text-center mb-8">Інструкція</h2>
+      <p class="text-lg mb-4">Завантажте повну інструкцію користувача для налаштування та використання Solax Smart Relay.</p>
+      <a href="assets/docs/instructions.pdf" class="inline-block bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700">Завантажити інструкцію</a>
+    </div>
+  </section>
+
+  <!-- Contact -->
+  <section id="contact" class="bg-gray-800 text-white py-12">
+    <div class="container mx-auto px-4 text-center">
+      <h2 class="text-3xl font-bold mb-8">Зв’яжіться з нами</h2>
+      <p class="text-lg mb-4">Маєте запитання чи хочете замовити Solax Smart Relay? Напишіть нам!</p>
+      <a href="mailto:support@solaxsmartrelay.com" class="inline-block bg-yellow-400 text-black px-6 py-3 rounded-lg font-semibold hover:bg-yellow-500">Написати</a>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="bg-gray-900 text-white py-6">
+    <div class="container mx-auto text-center">
+      <p>© 2025 Solax Smart Relay. Усі права захищено.</p>
+    </div>
+  </footer>
+</body>
+</html>
